@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from pandas import ExcelWriter
+from pandas import ExcelFile
+df = pd.read_excel('C:/Users/User/Documents/ИПЭЭ/speed of learning/time.xlsx', sheet_name = 'M. brandti') 
+
+
+df1 = pd.read_excel('C:/Users/User/Documents/ИПЭЭ/speed of learning/time.xlsx', sheet_name = 'perc_OC')
+plt.figsize = (10, 20)
+df1.plot(x='day', kind='line', grid=True, color=['#F29A48', '#4AF29B', '#9B4AF2', '#F04AF2'])
+plt.legend(loc='upper right', bbox_to_anchor=(1.35, 1))
+plt.grid(color = 'grey', linestyle = '--', linewidth = 0.4)
+plt.ylabel("% of animals that solved the task")
+plt.xlabel("day")
+plt.show()
+
+df1 = pd.read_excel('C:/Users/User/Documents/ИПЭЭ/speed of learning/time.xlsx', sheet_name = 'perc_MT')
+plt.figsize = (10, 20)
+df1.plot(x='day', kind='line', grid=True, color=['#F29A48', '#4AF29B', '#9B4AF2', '#F04AF2'])
+plt.legend(loc='upper right', bbox_to_anchor=(1.35, 1))
+plt.grid(color = 'grey', linestyle = '--', linewidth = 0.4)
+plt.ylabel("% of animals that solved the task")
+plt.xlabel("day")
+plt.show()
+
+
+
+df6 = pd.read_excel('C:/Users/User/Documents/ИПЭЭ/speed of learning/time.xlsx', sheet_name = 'last days')
+df6.boxplot(column=["A. curtatus", "A. eversmanni", "M. brandti"], grid=False,
+           boxprops = dict(color="black", linewidth=1.5),
+           medianprops = dict(color="black", linewidth=2), 
+           flierprops = dict(marker='o', color='black', markersize=4),
+           whiskerprops = dict(color="black", linewidth=1.5),
+           capprops = dict(color="black", linewidth=1.5)           
+           )
+plt.title("", fontsize=14)
+plt.ylabel("time, sec", fontsize=11)
+plt.figure(figsize=(20, 10))
+plt.show()
+
+
+
+from scipy.stats import kruskal
+group1 = df6["A. curtatus"].dropna()
+group2 = df6["M. brandti"].dropna()
+group3 = df6["A. eversmanni"].dropna()
+stat, p = kruskal(group1, group2, group3)
+print("Kruskal-Wallis H test:")
+print(f"Statistic: {stat}")
+print(f"P-value: {p}")
+
+
+from scipy.stats import mannwhitneyu
+from statsmodels.stats.multitest import multipletests
+pairs = [
+    ("A. curtatus vs M. brandti", group1, group2),
+    ("A. curtatus vs A. eversmanni", group1, group3),
+    ("M. brandti vs A. eversmanni", group2, group3),
+]
+
+p_values = []
+print("Pairwise Mann-Whitney U test results:")
+for name, group_a, group_b in pairs:
+    stat, p = mannwhitneyu(group_a, group_b, alternative="two-sided")
+    print(f"{name}: U-statistic = {stat}, p-value = {p}")
+    p_values.append(p)
+_, corrected_p_values, _, _ = multipletests(p_values, method="bonferroni")
+print("\nCorrected p-values (Bonferroni):")
+for (name, _, _), corrected_p in zip(pairs, corrected_p_values):
+    print(f"{name}: Corrected p-value = {corrected_p}")
